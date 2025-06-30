@@ -3,6 +3,7 @@ import { ZodTypeProvider } from 'fastify-type-provider-zod'
 import { z } from 'zod'
 import { prisma } from '@/lib/prisma'
 import { hash } from 'bcryptjs'
+import { BandRequestError } from '../_errors/bad-request-error'
 
 export async function createAccount(app: FastifyInstance) {
   app.withTypeProvider<ZodTypeProvider>().post(
@@ -29,7 +30,9 @@ export async function createAccount(app: FastifyInstance) {
       })
 
       if (userWithSameEmail) {
-        return reply.status(409).send({ message: 'Email already in use' })
+        throw new BandRequestError(
+          'User with this email already exists. Please use a different email.'
+        )
       }
 
       const autoJoinedOrganization = await prisma.organization.findFirst({
